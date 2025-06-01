@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useBoardStore } from '../../store/useBoardStore';
 import { useHeaderState } from '../../hooks/useHeaderState';
 import { FilterOption } from '../../types';
@@ -6,6 +6,7 @@ import { SearchBar } from './SearchBar';
 import { FilterDropdown } from './FilterDropdown';
 import { SelectedTasksBar } from './SelectedTasksBar';
 import { ConfirmDialog } from '../ConfirmDialog';
+import { MoveTasksModal } from '../modals/MoveTasksModal';
 
 const filters: FilterOption[] = [
   { value: 'all', label: 'All Tasks' },
@@ -14,7 +15,10 @@ const filters: FilterOption[] = [
 ];
 
 export function Header() {
+  const [showMoveModal, setShowMoveModal] = useState(false);
   const { state, actions, refs } = useHeaderState();
+  const { selectedTasks } = useBoardStore();
+  const hasSelectedTasks = selectedTasks.length > 0;
 
   const suggestions = React.useMemo(
     () =>
@@ -42,7 +46,7 @@ export function Header() {
     const allCompleted = state.selectedTasks.every(
       (taskId) => useBoardStore.getState().tasks[taskId]?.completed
     );
-    
+
     // Toggle to opposite state
     state.selectedTasks.forEach((taskId) => {
       const task = useBoardStore.getState().tasks[taskId];
@@ -55,6 +59,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 border-b bg-white shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        {/* Left side with search and selected tasks */}
         <div className="flex flex-1 items-center gap-4">
           <div
             className={state.selectedTasks.length > 0 ? 'hidden md:block' : 'block'}
@@ -70,7 +75,22 @@ export function Header() {
               showSuggestions={state.showSuggestions && suggestions.length > 0}
             />
           </div>
+          {hasSelectedTasks && (
+            <SelectedTasksBar
+              count={state.selectedTasks.length}
+              onClear={actions.clearSelectedTasks}
+              onComplete={handleBulkComplete}
+              onDelete={() => actions.setShowDeleteConfirm(true)}
+              onMove={() => setShowMoveModal(true)}
+              allCompleted={state.selectedTasks.every(
+                (taskId) => useBoardStore.getState().tasks[taskId]?.completed
+              )}
+            />
+          )}
+        </div>
 
+        {/* Right side with filters */}
+        <div className="flex-shrink-0">
           <FilterDropdown
             ref={refs.filterRef}
             filter={state.filter}
@@ -80,18 +100,6 @@ export function Header() {
             filters={filters}
           />
         </div>
-
-        {state.selectedTasks.length > 0 && (
-          <SelectedTasksBar
-            count={state.selectedTasks.length}
-            onClear={actions.clearSelectedTasks}
-            onComplete={handleBulkComplete}
-            onDelete={() => actions.setShowDeleteConfirm(true)}
-            allCompleted={state.selectedTasks.every(
-              (taskId) => useBoardStore.getState().tasks[taskId]?.completed
-            )}
-          />
-        )}
       </div>
 
       <ConfirmDialog
@@ -99,9 +107,13 @@ export function Header() {
         onClose={() => actions.setShowDeleteConfirm(false)}
         onConfirm={handleBulkDelete}
         title="Delete Tasks"
-        message={`Are you sure you want to delete ${state.selectedTasks.length} selected ${
-          state.selectedTasks.length === 1 ? 'task' : 'tasks'
-        }?`}
+        message={`Are you sure you want to delete ${state.selectedTasks.length} selected ${state.selectedTasks.length === 1 ? 'task' : 'tasks'
+          }?`}
+      />
+
+      <MoveTasksModal
+        isOpen={showMoveModal}
+        onClose={() => setShowMoveModal(false)}
       />
     </header>
   );

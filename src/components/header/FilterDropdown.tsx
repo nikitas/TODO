@@ -26,16 +26,16 @@ export const FilterDropdown = forwardRef<HTMLDivElement, FilterDropdownProps>(
       <div className="relative flex-shrink-0" ref={ref}>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white md:px-4 px-2 py-3 text-sm text-gray-700 shadow-sm hover:bg-gray-50 h-[50px] md:min-w-[140px] min-w-0 justify-between"
+          className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-gray-200 bg-white px-2.5 sm:px-3 lg:px-4 text-sm text-gray-700 shadow-sm hover:bg-gray-50 h-[50px] min-w-[40px] sm:min-w-[48px] lg:min-w-[140px] justify-between"
         >
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             {getFilterIcon(filter)}
-            <span className="hidden md:inline">
+            <span className="hidden lg:inline">
               {selectedFilter?.label}
             </span>
           </div>
           <ChevronDownIcon 
-            className="h-5 w-5 text-gray-400 md:ml-0 -ml-1" 
+            className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" 
           />
         </button>
 

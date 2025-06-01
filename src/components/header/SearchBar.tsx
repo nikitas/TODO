@@ -21,14 +21,16 @@ export function SearchBar({
   showSuggestions
 }: SearchBarProps) {
   return (
-    <div className="relative flex-1 min-w-[280px] md:min-w-[480px] lg:min-w-[640px]">
-      <MagnifyingGlassIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+    <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] md:min-w-[280px] lg:min-w-[320px] xl:min-w-[400px] 2xl:min-w-[480px]">
+      <MagnifyingGlassIcon 
+        className="absolute left-3 sm:left-4 top-1/2 h-4 sm:h-5 w-4 sm:w-5 -translate-y-1/2 text-gray-400" 
+      />
       <input
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Search tasks..."
-        className="w-full rounded-xl border border-gray-200 bg-gray-50/50 pl-12 pr-10 py-3 text-base placeholder:text-gray-400 focus:border-primary-300 focus:bg-white focus:ring-1 focus:ring-primary-100 focus:outline-none transition-colors"
+        className="w-full h-[50px] rounded-xl border border-gray-200 bg-gray-50/50 pl-10 sm:pl-12 pr-8 sm:pr-10 text-sm placeholder:text-gray-400 focus:border-primary-300 focus:bg-white focus:ring-1 focus:ring-primary-100 focus:outline-none transition-colors"
       />
       {searchTerm && (
         <button

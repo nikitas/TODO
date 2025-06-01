@@ -17,6 +17,7 @@ interface BoardStore extends Board {
   clearSelectedTasks: () => void;
   setFilter: (filter: Board['filter']) => void;
   updateColumnTitle: (columnId: string, title: string) => void;
+  moveSelectedTasks: (destinationColumnId: string) => void;
 }
 
 const getInitialState = (): Board => ({
@@ -222,6 +223,45 @@ export const useBoardStore = create<BoardStore>()(
             col.id === columnId ? { ...col, title } : col
           ),
         })),
+
+      moveSelectedTasks: (destinationColumnId: string) =>
+        set((state) => {
+          const updatedTasks = { ...state.tasks };
+          const selectedTasks = state.selectedTasks;
+
+          // Update tasks with new column ID
+          selectedTasks.forEach((taskId) => {
+            if (updatedTasks[taskId]) {
+              updatedTasks[taskId] = {
+                ...updatedTasks[taskId],
+                columnId: destinationColumnId,
+              };
+            }
+          });
+
+          // Update columns
+          const updatedColumns = state.columns.map((col) => {
+            if (col.id === destinationColumnId) {
+              // Add tasks to destination column
+              return {
+                ...col,
+                taskIds: [...col.taskIds, ...selectedTasks],
+              };
+            }
+            // Remove tasks from source columns
+            return {
+              ...col,
+              taskIds: col.taskIds.filter((id) => !selectedTasks.includes(id)),
+            };
+          });
+
+          return {
+            ...state,
+            tasks: updatedTasks,
+            columns: updatedColumns,
+            selectedTasks: [], // Clear selection after move
+          };
+        }),
     }),
     {
       name: 'board-storage',
