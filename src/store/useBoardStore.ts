@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { v4 as uuidv4 } from 'uuid';
 import type { Board, Task } from '../types';
 
 interface BoardStore extends Board {
@@ -39,7 +40,7 @@ export const useBoardStore = create<BoardStore>()(
 
       addTask: (columnId, title) =>
         set((state) => {
-          const taskId = Date.now().toString();
+          const taskId = uuidv4();
           const newTask: Task = {
             id: taskId,
             title,
@@ -157,7 +158,7 @@ export const useBoardStore = create<BoardStore>()(
         set((state) => ({
           columns: [
             ...state.columns,
-            { id: Date.now().toString(), title, taskIds: [] },
+            { id: uuidv4(), title, taskIds: [] },
           ],
         })),
 
