@@ -5,8 +5,11 @@
     "moduleResolution": "bundler",
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "types": ["node"],
-    "strict": true
+    "types": ["node", "react/jsx-runtime"],
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
