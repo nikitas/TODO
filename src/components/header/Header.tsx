@@ -5,8 +5,8 @@ import { FilterOption } from '../../types';
 import { SearchBar } from './SearchBar';
 import { FilterDropdown } from './FilterDropdown';
 import { SelectedTasksBar } from './SelectedTasksBar';
-import { ConfirmDialog } from '../ConfirmDialog';
 import { MoveTasksModal } from '../modals/MoveTasksModal';
+import { ConfirmDialog } from '../modals/ConfirmDialog';
 
 const filters: FilterOption[] = [
   { value: 'all', label: 'All Tasks' },

@@ -1,13 +1,14 @@
-import { useBoardStore } from '../store/useBoardStore';
-import { useTaskCard } from '../hooks/useTaskCard';
+import { useSortable } from '@dnd-kit/sortable';
+import { useCallback } from 'react';
+
+import { useBoardStore } from '../../store/useBoardStore';
+import { useTaskCard } from '../../hooks/useTaskCard';
+import { ConfirmDialog } from '../modals/ConfirmDialog';
 import { TaskActions } from './TaskActions';
-import { ConfirmDialog } from './ConfirmDialog';
-import type { Task } from '../types';
 import { TaskCheckbox } from './TaskCheckbox';
 import { TaskEditForm } from './TaskEditForm';
 import { TaskTitle } from './TaskTitle';
-import { useSortable } from '@dnd-kit/sortable';
-import { useCallback } from 'react';
+import type { Task } from '../../types';
 
 interface TaskCardProps {
   task: Task;

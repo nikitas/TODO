@@ -2,6 +2,11 @@
 
 A responsive and feature-rich todo list application built with React, TypeScript, and modern web technologies.
 
+## Getting Started
+1. Clone the repository
+2. Run `npm install`
+3. Run `npm run dev`
+
 ## Features
 
 - ✨ Modern and responsive design
@@ -70,5 +75,6 @@ When tasks are selected:
 - Delete all selected tasks
 
 ## Contributing
+
 
 Feel free to submit issues and enhancement requests!

@@ -21,23 +21,23 @@ interface BoardStore extends Board {
   moveSelectedTasks: (destinationColumnId: string) => void;
 }
 
-const getInitialState = (): Board => ({
+const INITIAL_STATE: Board = {
   columns: [
-    { id: '1', title: 'To Do', taskIds: [] },
-    { id: '2', title: 'In Progress', taskIds: [] },
-    { id: '3', title: 'Done', taskIds: [] },
+    { id: uuidv4(), title: 'To Do', taskIds: [] },
+    { id: uuidv4(), title: 'In Progress', taskIds: [] },
+    { id: uuidv4(), title: 'Done', taskIds: [] },
   ],
   tasks: {},
   searchTerm: '',
   selectedTasks: [],
   filter: 'all',
-});
+} as const;
 
 export const useBoardStore = create<BoardStore>()(
   persist(
     (set) => ({
-      ...getInitialState(),
-
+      ...INITIAL_STATE,
+      
       addTask: (columnId, title) =>
         set((state) => {
           const taskId = uuidv4();

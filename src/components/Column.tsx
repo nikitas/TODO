@@ -1,7 +1,6 @@
 import { useColumn } from '../hooks/useColumn';
 import { highlightSearchTerm, validateTitle } from '../utils/columnUtils';
-import { TaskCard } from './TaskCard';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from './modals/ConfirmDialog';
 import { useBoardStore } from '../store/useBoardStore';
 import {
   EllipsisHorizontalIcon,
@@ -13,6 +12,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import type { ColumnProps, Task } from '../types';
+import { TaskCard } from './task/TaskCard';
 
 export function Column({ column, tasks, searchTerm }: ColumnProps) {
   const { state, setState, refs, sortableProps } = useColumn({ column });
