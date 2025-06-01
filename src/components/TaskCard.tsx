@@ -81,10 +81,10 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
     setState(prev => ({ ...prev, showDeleteConfirm: false }));
   }, [setState]);
 
-  const handleModalConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback(() => {
     deleteTask(task.id);
-    setState(prev => ({ ...prev, showDeleteConfirm: false }));
-  }, [deleteTask, task.id, setState]);
+    // Modal closing is handled by ConfirmDialog internally
+  }, [deleteTask, task.id]);
 
   const isSelected = selectedTasks.includes(task.id);
 
@@ -137,7 +137,7 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
       <ConfirmDialog
         isOpen={state.showDeleteConfirm}
         onClose={handleModalClose}
-        onConfirm={handleModalConfirm}
+        onConfirm={handleDeleteConfirm}
         title="Delete Task"
         message="Are you sure you want to delete this task?"
       />
