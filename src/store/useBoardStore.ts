@@ -44,7 +44,6 @@ export const useBoardStore = create<BoardStore>()(
             title,
             completed: false,
             columnId,
-            createdAt: Date.now(),
           };
 
           const column = state.columns.find((col) => col.id === columnId);
@@ -96,15 +95,39 @@ export const useBoardStore = create<BoardStore>()(
 
       moveTask: (taskId, sourceColumnId, destinationColumnId, newIndex) =>
         set((state) => {
+          const task = state.tasks[taskId];
+          if (!task) return state;
+
           const sourceColumn = state.columns.find((col) => col.id === sourceColumnId);
           const destColumn = state.columns.find((col) => col.id === destinationColumnId);
           if (!sourceColumn || !destColumn) return state;
 
-          // Remove task from source column
-          const newSourceTaskIds = sourceColumn.taskIds.filter(id => id !== taskId);
-          
-          // Insert task into destination column at specific index or end
+          // Handle same column reordering
+          if (sourceColumnId === destinationColumnId) {
+            const currentIndex = destColumn.taskIds.indexOf(taskId);
+            if (currentIndex === newIndex) return state;
+
+            const reorderedTaskIds = [...destColumn.taskIds];
+            reorderedTaskIds.splice(currentIndex, 1); // Remove from old position
+            if (newIndex !== undefined) {
+              reorderedTaskIds.splice(newIndex, 0, taskId); // Insert at new position
+            }
+
+            return {
+              ...state,
+              columns: state.columns.map((col) =>
+                col.id === sourceColumnId
+                  ? { ...col, taskIds: reorderedTaskIds }
+                  : col
+              ),
+            };
+          }
+
+          // Handle moving between columns
+          const newSourceTaskIds = sourceColumn.taskIds.filter((id) => id !== taskId);
           const newDestTaskIds = [...destColumn.taskIds];
+          
+          // Insert at specific index or end
           if (typeof newIndex === 'number') {
             newDestTaskIds.splice(newIndex, 0, taskId);
           } else {
@@ -112,6 +135,7 @@ export const useBoardStore = create<BoardStore>()(
           }
 
           return {
+            ...state,
             columns: state.columns.map((col) => {
               if (col.id === sourceColumnId) {
                 return { ...col, taskIds: newSourceTaskIds };
@@ -123,7 +147,7 @@ export const useBoardStore = create<BoardStore>()(
             }),
             tasks: {
               ...state.tasks,
-              [taskId]: { ...state.tasks[taskId], columnId: destinationColumnId },
+              [taskId]: { ...task, columnId: destinationColumnId },
             },
           };
         }),
@@ -203,4 +227,4 @@ export const useBoardStore = create<BoardStore>()(
       name: 'board-storage',
     }
   )
-); 
+);

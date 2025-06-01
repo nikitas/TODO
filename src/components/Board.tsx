@@ -136,7 +136,6 @@ export function Board() {
           
         return matchesSearch && matchesFilter;
       })
-      .sort((a, b) => a.createdAt - b.createdAt);
   };
 
   return (

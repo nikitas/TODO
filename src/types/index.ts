@@ -3,7 +3,6 @@ export interface Task {
   title: string;
   completed: boolean;
   columnId: string;
-  createdAt: number;
 }
 
 export interface Board {
@@ -24,12 +23,9 @@ export interface ColumnState {
 }
 
 export interface ColumnProps {
-  column: {
-    id: string;
-    title: string;
-  };
+  column: Column;
   tasks: Task[];
-  searchTerm: string;
+  searchTerm?: string;
 }
 
 export interface Column {

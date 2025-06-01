@@ -12,7 +12,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import type { ColumnProps } from '../types';
+import type { ColumnProps, Task } from '../types';
 
 export function Column({ column, tasks, searchTerm }: ColumnProps) {
   const { state, setState, refs, sortableProps } = useColumn({ column });
@@ -64,12 +64,21 @@ export function Column({ column, tasks, searchTerm }: ColumnProps) {
     if (handler) handler(e);
   };
 
+  // Create a lookup map for faster task access
+  const taskMap = new Map(tasks.map(task => [task.id, task]));
+
+  // Get tasks in column order using the map
+  const tasksInColumn = column.taskIds
+    .map(id => taskMap.get(id))
+    .filter((task): task is Task => Boolean(task));
+
   return (
     <div
       ref={sortableProps.setNodeRef}
       style={sortableProps.style}
-      className={'flex w-78 flex-shrink-0 flex-col rounded-xl bg-[#ebecf0] shadow-sm cursor-grab active:cursor-grabbing transition-all'}
+      className="flex w-78 flex-shrink-0 flex-col rounded-xl bg-[#ebecf0] shadow-sm cursor-grab active:cursor-grabbing transition-all"
       {...sortableProps.attributes}
+      {...sortableProps.listeners}
     >
       <div className="flex justify-between gap-2 p-2">
         <div className="flex items-center gap-2 flex-1">
@@ -147,10 +156,10 @@ export function Column({ column, tasks, searchTerm }: ColumnProps) {
 
       <div className="flex-grow space-y-2 overflow-y-auto p-2">
         <SortableContext 
-          items={tasks.map(task => task.id)} 
+          items={column.taskIds}
           strategy={verticalListSortingStrategy}
         >
-          {tasks.map((task) => (
+          {tasksInColumn.map((task) => (
             <TaskCard
               key={task.id}
               task={task}

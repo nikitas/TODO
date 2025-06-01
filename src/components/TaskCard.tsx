@@ -2,10 +2,11 @@ import { useBoardStore } from '../store/useBoardStore';
 import { useTaskCard } from '../hooks/useTaskCard';
 import { TaskActions } from './TaskActions';
 import { ConfirmDialog } from './ConfirmDialog';
-import { Task } from '../types';
+import type { Task } from '../types';
 import { TaskCheckbox } from './TaskCheckbox';
 import { TaskEditForm } from './TaskEditForm';
 import { TaskTitle } from './TaskTitle';
+import { useSortable } from '@dnd-kit/sortable';
 
 interface TaskCardProps {
   task: Task;
@@ -21,6 +22,27 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
     toggleTaskSelection,
     selectedTasks,
   } = useBoardStore();
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: 'task',
+      task,
+    },
+  });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const handleEditSubmit = () => {
     if (state.editedTitle.trim() !== task.title) {
@@ -52,16 +74,16 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
 
   return (
     <div
-      ref={sortableProps.setNodeRef}
-      style={sortableProps.style}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       className={`group relative flex items-start gap-2 rounded-lg bg-white p-3 shadow-sm cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md ${
         task.completed ? 'bg-gray-50/80' : ''
       } ${isSelected ? 'ring-2 ring-primary' : ''} ${
         highlight ? 'ring-2 ring-primary ring-opacity-50' : ''
       } ${sortableProps.isDragging ? 'opacity-50 shadow-lg ring-2 ring-primary/30 rotate-2' : ''}`}
       onClick={handleTaskClick}
-      {...sortableProps.attributes}
-      {...sortableProps.listeners}
     >
       <TaskCheckbox
         isSelected={isSelected}

@@ -1,4 +1,4 @@
-export const highlightSearchTerm = (text: string, searchTerm: string): boolean => {
+export const highlightSearchTerm = (text: string, searchTerm?: string) => {
   if (!searchTerm) return false;
   return text.toLowerCase().includes(searchTerm.toLowerCase());
 };
