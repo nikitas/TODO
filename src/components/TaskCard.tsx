@@ -7,6 +7,7 @@ import { TaskCheckbox } from './TaskCheckbox';
 import { TaskEditForm } from './TaskEditForm';
 import { TaskTitle } from './TaskTitle';
 import { useSortable } from '@dnd-kit/sortable';
+import { useCallback } from 'react';
 
 interface TaskCardProps {
   task: Task;
@@ -70,6 +71,21 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
     }
   };
 
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setState(prev => ({ ...prev, showDeleteConfirm: true }));
+  }, [setState]);
+
+  const handleModalClose = useCallback(() => {
+    setState(prev => ({ ...prev, showDeleteConfirm: false }));
+  }, [setState]);
+
+  const handleModalConfirm = useCallback(() => {
+    deleteTask(task.id);
+    setState(prev => ({ ...prev, showDeleteConfirm: false }));
+  }, [deleteTask, task.id, setState]);
+
   const isSelected = selectedTasks.includes(task.id);
 
   return (
@@ -115,13 +131,13 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
         isCompleted={task.completed}
         onComplete={() => toggleTaskComplete(task.id)}
         onEdit={() => setState(prev => ({ ...prev, isEditing: true }))}
-        onDelete={() => setState(prev => ({ ...prev, showDeleteConfirm: true }))}
+        onDelete={handleDeleteClick}
       />
 
       <ConfirmDialog
         isOpen={state.showDeleteConfirm}
-        onClose={() => setState(prev => ({ ...prev, showDeleteConfirm: false }))}
-        onConfirm={() => deleteTask(task.id)}
+        onClose={handleModalClose}
+        onConfirm={handleModalConfirm}
         title="Delete Task"
         message="Are you sure you want to delete this task?"
       />
