@@ -198,19 +198,28 @@ export const useBoardStore = create<BoardStore>()(
             : [...state.selectedTasks, taskId],
         })),
 
-      selectAllTasksInColumn: (columnId) =>
+      selectAllTasksInColumn: (columnId: string) =>
         set((state) => {
           const column = state.columns.find((col) => col.id === columnId);
           if (!column) return state;
 
-          const allTasksSelected = column.taskIds.every((taskId) =>
-            state.selectedTasks.includes(taskId)
+          const tasksToSelect = column.taskIds.filter(
+            (id) => !state.selectedTasks.includes(id)
           );
 
+          if (tasksToSelect.length === 0) {
+            // If all tasks are already selected, deselect them
+            return {
+              ...state,
+              selectedTasks: state.selectedTasks.filter(
+                (id) => !column.taskIds.includes(id)
+              ),
+            };
+          }
+
           return {
-            selectedTasks: allTasksSelected
-              ? state.selectedTasks.filter((taskId) => !column.taskIds.includes(taskId))
-              : [...new Set([...state.selectedTasks, ...column.taskIds])],
+            ...state,
+            selectedTasks: [...state.selectedTasks, ...tasksToSelect],
           };
         }),
 

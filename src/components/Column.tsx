@@ -17,7 +17,7 @@ import TaskCard from './task/TaskCard';
 
 export function Column({ column, tasks, searchTerm }: ColumnProps) {
   const { state, setState, refs, sortableProps } = useColumn({ column });
-  const { addTask, deleteColumn, updateColumnTitle } = useBoardStore();
+  const { addTask, deleteColumn, updateColumnTitle, selectAllTasksInColumn, selectedTasks } = useBoardStore();
 
   const handleEditSubmit = useCallback(() => {
     const trimmedTitle = state.editedTitle.trim();
@@ -124,6 +124,15 @@ export function Column({ column, tasks, searchTerm }: ColumnProps) {
     }
   }, [state.newTaskTitle, setState]);
 
+  const handleSelectAllTasks = useCallback(() => {
+    selectAllTasksInColumn(column.id);
+  }, [column.id, selectAllTasksInColumn]);
+
+  const allTasksSelected = useMemo(() => {
+    return column.taskIds.length > 0 && 
+           column.taskIds.every(id => selectedTasks.includes(id));
+  }, [column.taskIds, selectedTasks]);
+
   return (
     <div
       ref={sortableProps.setNodeRef}
@@ -163,13 +172,24 @@ export function Column({ column, tasks, searchTerm }: ColumnProps) {
               </div>
             </div>
           ) : (
-            <h3
-              className="text-sm font-medium text-gray-700 px-2 py-1 cursor-grab active:cursor-grabbing rounded flex-1"
-              onDoubleClick={() => setState(prev => ({ ...prev, isEditing: true }))}
-              {...sortableProps.listeners}
-            >
-              {column.title}
-            </h3>
+            <>
+              {column.taskIds.length > 0 && (
+                <input
+                  type="checkbox"
+                  checked={allTasksSelected}
+                  onChange={handleSelectAllTasks}
+                  className="h-4 w-4 mr-1 rounded border-2 border-gray-300 text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer"
+                  title={allTasksSelected ? 'Deselect all tasks' : 'Select all tasks'}
+                />
+              )}
+              <h3
+                className="text-sm font-medium text-gray-700 py-1 cursor-grab active:cursor-grabbing rounded flex-1"
+                onDoubleClick={() => setState(prev => ({ ...prev, isEditing: true }))}
+                {...sortableProps.listeners}
+              >
+                {column.title}
+              </h3>
+            </>
           )}
         </div>
 

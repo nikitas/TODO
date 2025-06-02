@@ -3,9 +3,17 @@
 A responsive and feature-rich todo list application built with React, TypeScript, and modern web technologies.
 
 ## Getting Started
+
 1. Clone the repository
-2. Run `npm install`
-3. Run `npm run dev`
+2. Install dependencies:
+   ```
+   npm install
+   ```
+3. Start the development server:
+   ```
+   npm run dev
+   ```
+4. Open [http://localhost:5173](http://localhost:5173) in your browser
 
 ## Features
 
@@ -19,6 +27,7 @@ A responsive and feature-rich todo list application built with React, TypeScript
 - 🔄 Drag and drop tasks between columns
 - 📊 Customizable columns
 - 💾 Persistent storage using localStorage
+- ✅ Select all tasks in a column
 
 ## Technologies Used
 
@@ -28,21 +37,6 @@ A responsive and feature-rich todo list application built with React, TypeScript
 - Zustand (State Management)
 - dnd-kit (Drag and Drop)
 - Hero Icons
-
-## Getting Started
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:5173](http://localhost:5173) in your browser
-
-## Usage
 
 ### Tasks
 - Click the "Add Task" button in any column to create a new task
@@ -73,8 +67,3 @@ When tasks are selected:
 - Mark all selected tasks as complete
 - Mark all selected tasks as incomplete
 - Delete all selected tasks
-
-## Contributing
-
-
-Feel free to submit issues and enhancement requests!
