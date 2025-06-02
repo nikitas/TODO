@@ -8,8 +8,8 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    host: true, // Listen on all network interfaces
-    port: 5173, // Default Vite port
+    host: true,
+    port: 5173,
   },
 })
 

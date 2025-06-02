@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useBoardStore } from '../../store/useBoardStore';
 import { useHeaderState } from '../../hooks/useHeaderState';
 import { FilterOption } from '../../types';
 import { SearchBar } from './SearchBar';
 import { FilterDropdown } from './FilterDropdown';
-import { SelectedTasksBar } from './SelectedTasksBar';
 import { MoveTasksModal } from '../modals/MoveTasksModal';
 import { ConfirmDialog } from '../modals/ConfirmDialog';
+import SelectedTasksBar from './SelectedTasksBar';
 
 const filters: FilterOption[] = [
   { value: 'all', label: 'All Tasks' },
@@ -18,9 +18,10 @@ export function Header() {
   const [showMoveModal, setShowMoveModal] = useState(false);
   const { state, actions, refs } = useHeaderState();
   const { selectedTasks } = useBoardStore();
-  const hasSelectedTasks = selectedTasks.length > 0;
 
-  const suggestions = React.useMemo(
+  const hasSelectedTasks = useMemo(() => selectedTasks.length > 0, [selectedTasks]);
+
+  const suggestions = useMemo(
     () =>
       Object.values(useBoardStore.getState().tasks)
         .filter(
@@ -36,30 +37,48 @@ export function Header() {
     [state.searchTerm]
   );
 
-  const handleBulkDelete = () => {
+  // Memoize handlers
+  const handleBulkDelete = useCallback(() => {
     state.selectedTasks.forEach(actions.deleteTask);
     actions.clearSelectedTasks();
-  };
+  }, [state.selectedTasks, actions]);
 
-  const handleBulkComplete = () => {
-    // Check if all selected tasks are completed
+  const handleBulkComplete = useCallback(() => {
     const allCompleted = state.selectedTasks.every(
       (taskId) => useBoardStore.getState().tasks[taskId]?.completed
     );
 
-    // Toggle to opposite state
     state.selectedTasks.forEach((taskId) => {
       const task = useBoardStore.getState().tasks[taskId];
       if (task && task.completed === allCompleted) {
         actions.toggleTaskComplete(taskId);
       }
     });
-  };
+  }, [state.selectedTasks, actions]);
+
+  const handleSuggestionClick = useCallback((suggestion: { title: string }) => {
+    actions.setSearchTerm(suggestion.title);
+  }, [actions]);
+
+  const handleMoveModalClose = useCallback(() => {
+    setShowMoveModal(false);
+  }, []);
+
+  const handleDeleteConfirmClose = useCallback(() => {
+    actions.setShowDeleteConfirm(false);
+  }, [actions]);
+
+  const handleMoveModalOpen = useCallback(() => {
+    setShowMoveModal(true);
+  }, []);
+
+  const handleDeleteConfirmOpen = useCallback(() => {
+    actions.setShowDeleteConfirm(true);
+  }, [actions]);
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-        {/* Left side with search and selected tasks */}
         <div className="flex flex-1 items-center gap-4">
           <div
             className={state.selectedTasks.length > 0 ? 'hidden md:block' : 'block'}
@@ -69,9 +88,7 @@ export function Header() {
               searchTerm={state.searchTerm}
               setSearchTerm={actions.setSearchTerm}
               suggestions={suggestions}
-              onSuggestionClick={(suggestion) => {
-                actions.setSearchTerm(suggestion.title);
-              }}
+              onSuggestionClick={handleSuggestionClick}
               showSuggestions={state.showSuggestions && suggestions.length > 0}
             />
           </div>
@@ -80,8 +97,8 @@ export function Header() {
               count={state.selectedTasks.length}
               onClear={actions.clearSelectedTasks}
               onComplete={handleBulkComplete}
-              onDelete={() => actions.setShowDeleteConfirm(true)}
-              onMove={() => setShowMoveModal(true)}
+              onDelete={handleDeleteConfirmOpen}
+              onMove={handleMoveModalOpen}
               allCompleted={state.selectedTasks.every(
                 (taskId) => useBoardStore.getState().tasks[taskId]?.completed
               )}
@@ -104,7 +121,7 @@ export function Header() {
 
       <ConfirmDialog
         isOpen={state.showDeleteConfirm}
-        onClose={() => actions.setShowDeleteConfirm(false)}
+        onClose={handleDeleteConfirmClose}
         onConfirm={handleBulkDelete}
         title="Delete Tasks"
         message={`Are you sure you want to delete ${state.selectedTasks.length} selected ${state.selectedTasks.length === 1 ? 'task' : 'tasks'
@@ -113,8 +130,10 @@ export function Header() {
 
       <MoveTasksModal
         isOpen={showMoveModal}
-        onClose={() => setShowMoveModal(false)}
+        onClose={handleMoveModalClose}
       />
     </header>
   );
 }
+
+export default React.memo(Header);

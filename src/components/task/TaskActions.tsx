@@ -22,7 +22,6 @@ export function TaskActions({
     e.stopPropagation();
     e.preventDefault();
     action(e);
-    return false; // Prevent any bubbling
   }, []);
 
   return (

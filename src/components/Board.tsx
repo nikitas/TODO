@@ -10,10 +10,10 @@ import {
   horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useBoardStore } from '../store/useBoardStore';
-import { Column } from './Column';
-import type { Task } from '../types/index'
+import { Column as ColumnComponent } from './Column';
+import type { Column, Task } from '../types';
 
 export function Board() {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
@@ -37,106 +37,120 @@ export function Board() {
     })
   );
 
-  const handleDragOver = ({ active, over }: DragOverEvent) => {
-    if (!over) return;
+  const handleTaskToTaskMove = useCallback((
+    activeId: string,
+    overId: string,
+    tasks: Record<string, Task>,
+    columns: Column[]
+  ) => {
+    const activeTask = tasks[activeId];
+    const overTask = tasks[overId];
+
+    if (!activeTask || !overTask) return;
+
+    if (activeTask.columnId !== overTask.columnId) {
+      // Moving to different column
+      const targetColumn = columns.find(col => col.id === overTask.columnId);
+      if (!targetColumn) return;
+
+      const overTaskIndex = targetColumn.taskIds.findIndex(id => id === overTask.id);
+      moveTask(activeId, activeTask.columnId, overTask.columnId, overTaskIndex);
+    } else {
+      // Reordering within same column
+      const sourceColumn = columns.find(col => col.id === activeTask.columnId);
+      if (!sourceColumn) return;
+
+      const oldIndex = sourceColumn.taskIds.indexOf(activeId);
+      const newIndex = sourceColumn.taskIds.indexOf(overId);
+      
+      if (oldIndex !== newIndex) {
+        moveTask(activeId, activeTask.columnId, activeTask.columnId, newIndex);
+      }
+    }
+  }, [moveTask]);
+
+  const handleTaskToColumnMove = useCallback((
+    activeId: string,
+    columnId: string,
+    tasks: Record<string, Task>
+  ) => {
+    const activeTask = tasks[activeId];
+    if (activeTask && activeTask.columnId !== columnId) {
+      moveTask(activeId, activeTask.columnId, columnId);
+    }
+  }, [moveTask]);
+
+  const handleDragOver = useCallback(({ active, over }: DragOverEvent) => {
+    if (!over || active.id === over.id) return;
 
     const activeId = active.id.toString();
     const overId = over.id.toString();
-
-    if (activeId === overId) return;
-
     const isActiveTask = active.data.current?.type === 'task';
     const isOverTask = over.data.current?.type === 'task';
 
     if (!isActiveTask) return;
 
-    // Dropping a task over another task
     if (isActiveTask && isOverTask) {
-      const activeTask = tasks[activeId];
-      const overTask = tasks[overId];
-      
-      if (!activeTask || !overTask) return;
-
-      if (activeTask.columnId !== overTask.columnId) {
-        const targetColumn = columns.find(col => col.id === overTask.columnId);
-        if (!targetColumn) return;
-
-        const overTaskIndex = targetColumn.taskIds.findIndex(id => id === overTask.id);
-        moveTask(activeId, activeTask.columnId, overTask.columnId, overTaskIndex);
-      } else {
-        const sourceColumn = columns.find(col => col.id === activeTask.columnId);
-        if (!sourceColumn) return;
-
-        const oldIndex = sourceColumn.taskIds.indexOf(activeId);
-        const newIndex = sourceColumn.taskIds.indexOf(overId);
-        
-        if (oldIndex !== newIndex) {
-          moveTask(activeId, activeTask.columnId, activeTask.columnId, newIndex);
-        }
-      }
+      handleTaskToTaskMove(activeId, overId, tasks, columns);
+    } else if (isActiveTask) {
+      handleTaskToColumnMove(activeId, overId, tasks);
     }
+  }, [tasks, columns, handleTaskToTaskMove, handleTaskToColumnMove]);
 
-    // Dropping a task over a column
-    if (isActiveTask && !isOverTask) {
-      const activeTask = tasks[activeId];
-      const overColumn = over.id.toString();
-      
-      if (activeTask && activeTask.columnId !== overColumn) {
-        moveTask(activeId, activeTask.columnId, overColumn);
-      }
-    }
-  };
-
-  const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    if (!over) {
-      return;
-    }
+  const handleDragEnd = useCallback(({ active, over }: DragEndEvent) => {
+    if (!over) return;
 
     if (active.id !== over.id) {
       const isColumn = active.data.current?.type === 'column';
-      
+
       if (isColumn) {
         const oldIndex = columns.findIndex((col) => col.id === active.id);
         const newIndex = columns.findIndex((col) => col.id === over.id);
         moveColumn(oldIndex, newIndex);
       }
     }
-  };
+  }, [columns, moveColumn]);
 
-  const handleAddColumn = () => {
+  const handleAddColumn = useCallback(() => {
     if (newColumnTitle.trim()) {
       addColumn(newColumnTitle.trim());
       setNewColumnTitle('');
       setIsAddingColumn(false);
     }
-  };
+  }, [newColumnTitle, addColumn]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleAddColumn();
     } else if (e.key === 'Escape') {
       setNewColumnTitle('');
       setIsAddingColumn(false);
     }
-  };
+  }, [handleAddColumn]);
 
-  const getFilteredTasks = (columnId: string): Task[] => {
+  const getFilteredTasks = useCallback((columnId: string): Task[] => {
     return Object.values(tasks)
       .filter((task: Task) => {
         if (task.columnId !== columnId) return false;
-        
+
         const matchesSearch = searchTerm
           ? task.title.toLowerCase().includes(searchTerm.toLowerCase())
           : true;
-          
+
         const matchesFilter =
           filter === 'all' ||
           (filter === 'completed' && task.completed) ||
           (filter === 'incomplete' && !task.completed);
-          
+
         return matchesSearch && matchesFilter;
-      })
-  };
+      });
+  }, [tasks, searchTerm, filter]);
+
+  const columnIds = useMemo(() => columns.map((col) => col.id), [columns]);
+
+  const handleColumnTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewColumnTitle(e.target.value);
+  }, []);
 
   return (
     <div className="h-full w-full overflow-x-auto">
@@ -147,12 +161,12 @@ export function Board() {
           onDragEnd={handleDragEnd}
         >
           <SortableContext
-            items={columns.map((col) => col.id)}
+            items={columnIds}
             strategy={horizontalListSortingStrategy}
           >
             <div className="inline-flex gap-4">
               {columns.map((column) => (
-                <Column
+                <ColumnComponent
                   key={column.id}
                   column={column}
                   tasks={getFilteredTasks(column.id)}
@@ -168,7 +182,7 @@ export function Board() {
             <input
               type="text"
               value={newColumnTitle}
-              onChange={(e) => setNewColumnTitle(e.target.value)}
+              onChange={handleColumnTitleChange}
               onKeyDown={handleKeyDown}
               placeholder="Enter list title..."
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-blue-200 focus:ring-1 focus:ring-blue-200 focus:outline-none"

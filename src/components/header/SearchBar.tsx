@@ -20,6 +20,8 @@ export function SearchBar({
   onSuggestionClick,
   showSuggestions
 }: SearchBarProps) {
+  //TODO add debounce to search input to improve performance
+  
   return (
     <div className="relative flex-1 min-w-[160px] sm:min-w-[200px] md:min-w-[280px] lg:min-w-[320px] xl:min-w-[400px] 2xl:min-w-[480px]">
       <MagnifyingGlassIcon 

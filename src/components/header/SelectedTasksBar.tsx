@@ -1,4 +1,5 @@
-import { CheckIcon } from '@heroicons/react/24/solid' // Change this import to solid
+import React from 'react';
+import { CheckIcon } from '@heroicons/react/24/solid'
 import {
   CheckCircleIcon,
   TrashIcon,
@@ -12,16 +13,16 @@ interface SelectedTasksBarProps {
   onClear: () => void;
   onComplete: () => void;
   onDelete: () => void;
-  onMove: () => void; // Add this
+  onMove: () => void;
   allCompleted: boolean;
 }
 
-export function SelectedTasksBar({
+function SelectedTasksBar({
   count,
   onClear,
   onComplete,
   onDelete,
-  onMove, // Add this
+  onMove,
   allCompleted
 }: SelectedTasksBarProps) {
   return (
@@ -68,5 +69,7 @@ export function SelectedTasksBar({
         </button>
       </div>
     </div>
-  )
+  );
 }
+
+export default React.memo(SelectedTasksBar);

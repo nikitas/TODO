@@ -1,9 +1,11 @@
+import React from 'react';
+
 interface TaskCheckboxProps {
   isSelected: boolean;
   onChange: () => void;
 }
 
-export function TaskCheckbox({ isSelected, onChange }: TaskCheckboxProps) {
+function TaskCheckbox({ isSelected, onChange }: TaskCheckboxProps) {
   return (
     <input
       type="checkbox"
@@ -14,3 +16,5 @@ export function TaskCheckbox({ isSelected, onChange }: TaskCheckboxProps) {
     />
   );
 }
+
+export default React.memo(TaskCheckbox);

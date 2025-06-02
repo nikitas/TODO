@@ -1,21 +1,21 @@
+import React, { useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
-import { useCallback } from 'react';
 
 import { useBoardStore } from '../../store/useBoardStore';
 import { useTaskCard } from '../../hooks/useTaskCard';
 import { ConfirmDialog } from '../modals/ConfirmDialog';
 import { TaskActions } from './TaskActions';
-import { TaskCheckbox } from './TaskCheckbox';
 import { TaskEditForm } from './TaskEditForm';
-import { TaskTitle } from './TaskTitle';
 import type { Task } from '../../types';
+import TaskTitle from './TaskTitle';
+import TaskCheckbox from './TaskCheckbox';
 
 interface TaskCardProps {
   task: Task;
   highlight?: boolean;
 }
 
-export function TaskCard({ task, highlight }: TaskCardProps) {
+function TaskCard({ task, highlight }: TaskCardProps) {
   const { state, setState, inputRef, sortableProps } = useTaskCard(task);
   const {
     toggleTaskComplete,
@@ -24,6 +24,66 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
     toggleTaskSelection,
     selectedTasks,
   } = useBoardStore();
+
+  const handleEditSubmit = useCallback(() => {
+    if (state.editedTitle.trim() !== task.title) {
+      updateTaskTitle(task.id, state.editedTitle.trim());
+    }
+    setState(prev => ({ ...prev, isEditing: false }));
+  }, [state.editedTitle, task.title, task.id, updateTaskTitle, setState]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleEditSubmit();
+    }
+    if (e.key === 'Escape') {
+      setState(prev => ({
+        ...prev,
+        isEditing: false,
+        editedTitle: task.title
+      }));
+    }
+  }, [handleEditSubmit, setState, task.title]);
+
+  const handleTaskClick = useCallback(() => {
+    if (!state.isEditing) {
+      toggleTaskSelection(task.id);
+    }
+  }, [state.isEditing, toggleTaskSelection, task.id]);
+
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setState(prev => ({ ...prev, showDeleteConfirm: true }));
+  }, [setState]);
+
+  const handleModalClose = useCallback(() => {
+    setState(prev => ({ ...prev, showDeleteConfirm: false }));
+  }, [setState]);
+
+  const handleDeleteConfirm = useCallback(() => {
+    deleteTask(task.id);
+  }, [deleteTask, task.id]);
+
+  const handleEditChange = useCallback((value: string) => {
+    setState(prev => ({ ...prev, editedTitle: value }));
+  }, [setState]);
+
+  const handleEditCancel = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      isEditing: false,
+      editedTitle: task.title
+    }));
+  }, [setState, task.title]);
+
+  const handleStartEdit = useCallback(() => {
+    setState(prev => ({ ...prev, isEditing: true }));
+  }, [setState]);
+
+  const handleCompleteToggle = useCallback(() => {
+    toggleTaskComplete(task.id);
+  }, [toggleTaskComplete, task.id]);
 
   const {
     attributes,
@@ -46,47 +106,6 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleEditSubmit = () => {
-    if (state.editedTitle.trim() !== task.title) {
-      updateTaskTitle(task.id, state.editedTitle.trim());
-    }
-    setState(prev => ({ ...prev, isEditing: false }));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleEditSubmit();
-    }
-    if (e.key === 'Escape') {
-      setState(prev => ({ 
-        ...prev, 
-        isEditing: false, 
-        editedTitle: task.title 
-      }));
-    }
-  };
-
-  const handleTaskClick = () => {
-    if (!state.isEditing) {
-      toggleTaskSelection(task.id);
-    }
-  };
-
-  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setState(prev => ({ ...prev, showDeleteConfirm: true }));
-  }, [setState]);
-
-  const handleModalClose = useCallback(() => {
-    setState(prev => ({ ...prev, showDeleteConfirm: false }));
-  }, [setState]);
-
-  const handleDeleteConfirm = useCallback(() => {
-    deleteTask(task.id);
-    // Modal closing is handled by ConfirmDialog internally
-  }, [deleteTask, task.id]);
-
   const isSelected = selectedTasks.includes(task.id);
 
   return (
@@ -95,16 +114,14 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`group relative flex items-start gap-2 rounded-lg bg-white p-3 shadow-sm cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md ${
-        task.completed ? 'bg-gray-50/80' : ''
-      } ${isSelected ? 'ring-2 ring-primary' : ''} ${
-        highlight ? 'ring-2 ring-primary ring-opacity-50' : ''
-      } ${sortableProps.isDragging ? 'opacity-50 shadow-lg ring-2 ring-primary/30 rotate-2' : ''}`}
+      className={`group relative flex items-start gap-2 rounded-lg bg-white p-3 shadow-sm cursor-grab active:cursor-grabbing transition-shadow hover:shadow-md ${task.completed ? 'bg-gray-50/80' : ''
+        } ${isSelected ? 'ring-2 ring-primary' : ''} ${highlight ? 'ring-2 ring-primary ring-opacity-50' : ''
+        } ${sortableProps.isDragging ? 'opacity-50 shadow-lg ring-2 ring-primary/30 rotate-2' : ''}`}
       onClick={handleTaskClick}
     >
       <TaskCheckbox
         isSelected={isSelected}
-        onChange={() => toggleTaskSelection(task.id)}
+        onChange={handleTaskClick}
       />
 
       <div className="flex-grow min-w-0">
@@ -112,13 +129,9 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
           <TaskEditForm
             ref={inputRef}
             value={state.editedTitle}
-            onChange={(value) => setState(prev => ({ ...prev, editedTitle: value }))}
+            onChange={handleEditChange}
             onKeyDown={handleKeyDown}
-            onCancel={() => setState(prev => ({ 
-              ...prev, 
-              isEditing: false, 
-              editedTitle: task.title 
-            }))}
+            onCancel={handleEditCancel}
             onSave={handleEditSubmit}
           />
         ) : (
@@ -130,8 +143,8 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
         isEditing={state.isEditing}
         isSelected={isSelected}
         isCompleted={task.completed}
-        onComplete={() => toggleTaskComplete(task.id)}
-        onEdit={() => setState(prev => ({ ...prev, isEditing: true }))}
+        onComplete={handleCompleteToggle}
+        onEdit={handleStartEdit}
         onDelete={handleDeleteClick}
       />
 
@@ -145,3 +158,5 @@ export function TaskCard({ task, highlight }: TaskCardProps) {
     </div>
   );
 }
+
+export default React.memo(TaskCard);
